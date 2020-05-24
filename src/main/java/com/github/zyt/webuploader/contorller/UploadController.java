@@ -147,11 +147,11 @@ public class UploadController {
     @RequestMapping(value = "/combine", method = RequestMethod.POST)
     @ResponseBody
     public Map<String, Object> combineBlock(String guid, String fileName, HttpServletResponse response) {
-        try {
+       /* try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }
+        }*/
 
         Map<String, Object> map = new HashMap<String, Object>();
         Res res = null;

@@ -48,6 +48,10 @@
     var blockSize = 10 * 1024 * 1024;
     var md5Arr = new Array(); //文件MD5数组
     var timeArr = new Array();//文件上传时间戳数组
+   /*
+   如果使用了guid 如何才能使用极速秒传呢
+   var guid = WebUploader.Base.guid();
+    alert(guid);*/
     WebUploader.Uploader.register({
         "before-send-file": "beforeSendFile",//整个文件上传前
         "before-send": "beforeSend",//每个分片上传前
