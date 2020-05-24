@@ -187,11 +187,13 @@
         var index = file.id.slice(8);//文件的下标
         var currentTime = new Date();
         var timeDiff = currentTime.getTime() - timeArr[index].getTime();//获取已用多少时间
-        console.log("获取已用多少时间" + timeDiff);
+       /*
+       不可用
+       console.log("获取已用多少时间" + timeDiff);
         console.log("传递大小" + uploader.chunkSize);
         console.log("传递大小" + uploader.size);
         var speed = Math.round(1024 * 10) / timeDiff;
-        console.log("当前网速" + speed);
+        console.log("当前网速" + speed);*/
         var timeStr;
         //如果percentage==1说明已经全部上传完毕，则需更改页面显示
         if (1 == percentage) {

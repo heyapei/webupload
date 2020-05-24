@@ -1,7 +1,10 @@
 package com.github.zyt.webuploader.contorller;
 
 import ch.qos.logback.classic.Logger;
+import com.github.zyt.webuploader.bean.Res;
+import com.github.zyt.webuploader.mapper.ResMapper;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +28,9 @@ public class UploadController {
 
     private static Logger logger = (Logger) LoggerFactory.getLogger(UploadController.class);
 
+    @Autowired
+    private ResMapper resMapper;
+
     /**
      * 上传路径
      */
@@ -34,9 +40,10 @@ public class UploadController {
     @RequestMapping(value = "/check", method = RequestMethod.POST)
     @ResponseBody
     public Map<String, Object> check(@RequestParam("fileMD5") String md5) {
-        System.out.println(md5);
+        logger.info("传入的文件md5数据是：" + md5);
+        Res res = resMapper.selectByMD5(md5);
         Map<String, Object> map = new HashMap<String, Object>();
-        if (false) {
+        if (res != null) {
             map.put("msg", "已存在");
             map.put("exist", true);
         } else {
@@ -140,7 +147,14 @@ public class UploadController {
     @RequestMapping(value = "/combine", method = RequestMethod.POST)
     @ResponseBody
     public Map<String, Object> combineBlock(String guid, String fileName, HttpServletResponse response) {
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         Map<String, Object> map = new HashMap<String, Object>();
+        Res res = null;
 
         //分片文件临时目录
         File tempPath = new File(uploadPath + File.separator + "temp" + File.separator + guid);
@@ -204,12 +218,54 @@ public class UploadController {
                     System.gc(); // 回收资源
                     tempPath.delete();
                 }
-                logger.info("文件合并——结束 [ 文件名称：" + fileName + " ，MD5值：" + guid + " ]");
+
+
                 String filePath = realPath + File.separator + fileName;
-                map.put("fileName", filePath);
+
+                res = resMapper.selectByMD5(guid);
+                if (res != null) {
+                    logger.info("文件合并1.查询不为空");
+                    String s = res.getrPath();
+                    logger.info("文件合并1——结束 [ 文件名称：" + fileName + " ，MD5值：" + guid + " ]，文件已存在直接使用已存在的的数据");
+                    map.put("fileName", s);
+                } else {
+                    res = new Res();
+                    logger.info("文件合并1.查询空");
+                    res.setrMd5(guid);
+                    res.setrPath(filePath);
+                    int insertResult = resMapper.insert(res);
+                    if (insertResult > 0) {
+                        logger.info("文件合并1——结束 [ 文件名称：" + fileName + " ，MD5值：" + guid + " ]，成功");
+                        map.put("fileName", filePath);
+                    } else {
+                        logger.info("文件合并1——结束 [ 文件名称：" + fileName + " ，MD5值：" + guid + " ]，失败");
+                        map.put("fileName", "文件保存失败请重试");
+                    }
+                }
             }
         } catch (Exception e) {
+
             String filePath = realPath + File.separator + fileName;
+            /*res = resMapper.selectByMD5(guid);
+            if (res != null) {
+                logger.info("文件合并.查询不为空");
+                String s = res.getrPath();
+                logger.info("文件合并——结束 [ 文件名称：" + fileName + " ，MD5值：" + guid + " ]，文件已存在直接使用已存在的的数据");
+                map.put("fileName", s);
+            } else {
+                res = new Res();
+                logger.info("文件合并.查询为空");
+                res.setrMd5(guid);
+                res.setrPath(filePath);
+                int insertResult = resMapper.insert(res);
+                if (insertResult > 0) {
+                    logger.info("文件合并——结束 [ 文件名称：" + fileName + " ，MD5值：" + guid + " ]，成功");
+                    map.put("fileName", filePath);
+                } else {
+                    logger.info("文件合并——结束 [ 文件名称：" + fileName + " ，MD5值：" + guid + " ]，失败");
+                    map.put("fileName", "文件保存失败请重试");
+                }
+            }*/
             map.put("fileName", filePath);
             logger.error("文件合并——失败 " + e.getMessage());
         }
